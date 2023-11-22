@@ -60,7 +60,7 @@ interpolate_row <- function(df){
 }
 
 df_temp <- interpolate_row(df)
-
+str(df_temp)
 
 na_percentages <- sapply(df_temp, function(x) sum(is.na(x)) / length(x)) * 100
 na_df <- data.frame(variable = names(na_percentages), na_percentage = na_percentages)
@@ -70,5 +70,11 @@ ggplot(na_df, aes(x = variable, y = na_percentage)) +
   theme_minimal() +
   coord_flip()
 
+library(dplyr)
+df_10 <- df_temp %>% filter(date >= as.POSIXct("2023-10-01"))
 
+str(df_10)
+colSums(is.na(df_10))
+summary(df_10)
 
+quantile(df_10$plug, na.rm = TRUE)

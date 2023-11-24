@@ -13,6 +13,7 @@ ggplot() +
 
 
 # 달이 넘어가는 부분에 대한 보간 -> create_new_row 함수로는 감지 못 함
+library(dplyr)
 interpolate_row <- function(df){
   # 날짜 범위 설정
   start_date <- min(df$date, na.rm = TRUE)
@@ -61,6 +62,8 @@ interpolate_row <- function(df){
 
 df_temp <- interpolate_row(df)
 str(df_temp)
+df_temp$date <- format(df_temp$date, "%Y-%m-%d %H:%M:%S")
+write.csv(df_temp, file="data/merge/W220_D6FC80_nan.csv", row.names=FALSE)
 
 na_percentages <- sapply(df_temp, function(x) sum(is.na(x)) / length(x)) * 100
 na_df <- data.frame(variable = names(na_percentages), na_percentage = na_percentages)
@@ -70,7 +73,7 @@ ggplot(na_df, aes(x = variable, y = na_percentage)) +
   theme_minimal() +
   coord_flip()
 
-library(dplyr)
+
 df_10 <- df_temp %>% filter(date >= as.POSIXct("2023-10-01"))
 
 str(df_10)

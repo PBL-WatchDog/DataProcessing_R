@@ -2,16 +2,6 @@ df <- read.csv("data/merge/W220_D6FC80.csv")
 str(df)
 df$date <- as.POSIXct(df$date, "%Y-%m-%d %H:%M", tz="Asia/Seoul")
 
-#library(imputeTS)
-
-
-library(ggplot2)
-ggplot() +
-  geom_line(data=door_df, aes(x=date, y=door3), color="blue") +
-  geom_line(data=door_df, aes(x=date, y=door2), color="red" ) +
-  geom_line(data=door_df, aes(x=date, y=door1), color="green")
-
-
 # 달이 넘어가는 부분에 대한 보간 -> create_new_row 함수로는 감지 못 함
 library(dplyr)
 interpolate_row <- function(df){
@@ -60,24 +50,37 @@ interpolate_row <- function(df){
   return (df)
 }
 
-df_temp <- interpolate_row(df)
-str(df_temp)
-df_temp$date <- format(df_temp$date, "%Y-%m-%d %H:%M:%S")
-write.csv(df_temp, file="data/merge/W220_D6FC80_nan.csv", row.names=FALSE)
+df <- interpolate_row(df)
 
-na_percentages <- sapply(df_temp, function(x) sum(is.na(x)) / length(x)) * 100
-na_df <- data.frame(variable = names(na_percentages), na_percentage = na_percentages)
-ggplot(na_df, aes(x = variable, y = na_percentage)) + 
-  geom_bar(stat = "identity") +
-  labs(y = "결측치 비율 (%)", x = "변수") +
-  theme_minimal() +
-  coord_flip()
+library(lubridate)
+df <- df %>%
+  mutate(date = date + hours(9))
+
+# 시간대를 분류하는 함수 정의
+get_time_of_day <- function(hour) {
+  if (hour >= 6 & hour < 12) {
+    return("Morning")
+  } else if (hour >= 12 & hour < 18) {
+    return("Afternoon")
+  } else if (hour >= 18 & hour < 24) {
+    return("Evening")
+  } else {
+    return("Night")
+  }
+}
+
+# 파생 변수 추가
+df <- df %>%
+  mutate(
+    weekday = wday(date, label = TRUE, abbr = TRUE), # 요일 (영어 전체 이름)
+    is_weekend = wday(date) %in% c(1, 7), # 주말 여부 (토요일, 일요일)
+    time_of_day = sapply(hour(date), get_time_of_day) # 시간대
+  )
+
+weekdays_eng <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+df$weekday <- weekdays_eng[wday(df$date)]
+
+df$date <- format(df$date, "%Y-%m-%d %H:%M:%S")
+write.csv(df, file="data/merge/W220_D6FC80.csv", row.names=FALSE)
 
 
-df_10 <- df_temp %>% filter(date >= as.POSIXct("2023-10-01"))
-
-str(df_10)
-colSums(is.na(df_10))
-summary(df_10)
-
-quantile(df_10$plug, na.rm = TRUE)

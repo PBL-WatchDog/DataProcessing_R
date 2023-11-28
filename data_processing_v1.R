@@ -28,7 +28,7 @@ freq(df$door3, plot=T)
 
 boxplot(df$plug)
 
-
+library(dplyr)
 ### 스케일링
 sensor_cols <- c("temperature", "humidity", "dew_point", "plug")
 
@@ -39,6 +39,8 @@ df[sensor_cols] <- lapply(df[sensor_cols], function(x) {
 summary(df)
 
 df_10 <- df %>% filter(date >= as.POSIXct("2023-10-01"))
+boxplot(df_10$motion2)
+
 
 df_10$activity_index_morning = ifelse(df_10$time_of_day == "Morning", rowSums(df_10[, c("door1", "door2", "door3", "motion1", "motion2", "plug")], na.rm = TRUE), NA)
 df_10$activity_index_evening = ifelse(df_10$time_of_day == "Evening", rowSums(df_10[, c("door1", "door2", "door3", "motion1", "motion2", "plug")], na.rm = TRUE), NA)
@@ -46,10 +48,7 @@ df_10$activity_index_afternoon = ifelse(df_10$time_of_day == "Afternoon", rowSum
 df_10$activity_index_Night = ifelse(df_10$time_of_day == "Night", rowSums(df_10[, c("door1", "door2", "door3", "motion1", "motion2", "plug")], na.rm = TRUE), NA)
 
 # 정규화
-df_10 <- df %>% filter(date >= as.POSIXct("2023-10-01"))
-
 library(scales)
-library(dplyr)
 df_10 <- df_10 %>%
   mutate(
     temperature = rescale(temperature, to = c(0, 1)),
@@ -58,9 +57,9 @@ df_10 <- df_10 %>%
     plug = rescale(plug, to = c(0, 10))
   )
 
-weights = c(door1 = 1, door2 = 1, door3 = 1, motion1 = 1, motion2 = 1, plug = 1)
+weights = c(door1 = 0.2, door2 = 0.2, door3 = 0.2, motion1 = 0.2, motion2 = 0.2, plug = 0.2)
 df_10$activity_index = rowSums(sweep(df_10[, c("door1", "door2", "door3", "motion1", "motion2", "plug")], 2, weights, "*"), na.rm = TRUE)
-
+summary(df_10)
 
 library(ggplot2)
 ggplot() +

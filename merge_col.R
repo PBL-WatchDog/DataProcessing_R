@@ -1,6 +1,4 @@
 gateway_df <- read.csv("data/gateway/W220_D6FC80.csv")
-str(gateway_df)
-
 gateway_df$date <- as.POSIXct(gateway_df$date, "%Y-%m-%d %H:%M:%S", tz="Asia/Seoul")
 str(gateway_df)
 colSums(is.na(gateway_df))
@@ -22,11 +20,15 @@ nrow(motion_df)
 nrow(motion_df)
 nrow(plug_df)
 
-# left join으로 df 결합합
 library(dplyr)
+# left join으로 df 결합
 df <- left_join(gateway_df, door_df, by=c("date", "mac_address"))
 df <- left_join(df, motion_df, by=c("date", "mac_address"))
 df <- left_join(df, plug_df, by=c("date", "mac_address"))
+
+library(lubridate)
+df <- df %>%
+  mutate(date = date + hours(9))
 
 # 디바이스 등록 전 날짜의 값들은 결측치로 처리리
 df <- df %>%
@@ -39,7 +41,7 @@ df <- df %>%
 df <- df %>%
   mutate(motion1 = if_else(date < as.Date("2023-10-06"), NA_real_, motion1))
 df <- df %>%
-  mutate(motion2 = if_else(date < as.Date("2023-10-29") | date > as.Date("2023-11-10"), NA_real_, motion2))
+  mutate(motion2 = if_else((date >= as.Date("2023-10-29") & date <= as.Date("2023-10-31")) | date >= as.Date("2023-11-21"), motion2, NA_real_))
 
 df <- df %>%
   mutate(plug = if_else(date < as.Date("2023-10-10"), NA_real_, plug))

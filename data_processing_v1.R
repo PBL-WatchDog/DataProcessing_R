@@ -64,3 +64,24 @@ summary(df_10)
 library(ggplot2)
 ggplot() +
   geom_line(data=df_10, aes(x=date, y=activity_index))
+
+
+# 2시간 단위로 데이터 통합
+library(lubridate)
+df_2h <- df %>%
+  mutate(hour_group = floor_date(date, "2 hours")) %>%
+  group_by(mac_address, hour_group, weekday, is_weekend, time_of_day) %>%
+  summarise(
+    temperature = mean(temperature, na.rm = TRUE),
+    humidity = mean(humidity, na.rm = TRUE),
+    dew_point = mean(dew_point, na.rm = TRUE),
+    door1 = sum(door1, na.rm = TRUE),
+    door2 = sum(door2, na.rm = TRUE),
+    door3 = sum(door3, na.rm = TRUE),
+    motion1 = sum(motion1, na.rm = TRUE),
+    motion2 = sum(motion2, na.rm = TRUE),
+    plug = sum(plug, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+summary(df_2h)

@@ -52,10 +52,6 @@ interpolate_row <- function(df){
 
 df <- interpolate_row(df)
 
-library(lubridate)
-df <- df %>%
-  mutate(date = date + hours(9))
-
 # 시간대를 분류하는 함수 정의
 get_time_of_day <- function(hour) {
   if (hour >= 6 & hour < 12) {
@@ -82,5 +78,3 @@ df$weekday <- weekdays_eng[wday(df$date)]
 
 df$date <- format(df$date, "%Y-%m-%d %H:%M:%S")
 write.csv(df, file="data/merge/W220_D6FC80.csv", row.names=FALSE)
-
-

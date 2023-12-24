@@ -10,8 +10,8 @@ df_10 <- df %>% filter(date >= as.POSIXct("2023-10-01")) %>%
   ) %>%
   select(-time_of_day)
 
-df_3days <- df_10 %>%
-  mutate(hour_group = floor_date(date, "3 days")) %>%
+df_7days <- df_10 %>%
+  mutate(hour_group = floor_date(date, "7 days")) %>%
   group_by(mac_address, hour_group) %>%
   summarise(
     temperature = mean(temperature, na.rm = TRUE),
@@ -61,5 +61,4 @@ ggplot(df_10, aes(x=date)) +
 
 ggplot(df_grouped, aes(x = time_slot)) +
   geom_bar(aes(y = total_door), stat = "identity", fill = "blue") +
-  geom_bar(aes(y = total_motion), stat = "identity", fill = "red") +
   labs(title = "Time Slot-wise Activity", x = "Time Slot", y = "Total Activity")
